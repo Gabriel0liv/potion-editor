@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.gabri.potioneditor.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "potioneditor.refmap.json",
+  "mixins": [
+    "PotionMixin",
+    "PotionUtilsMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
