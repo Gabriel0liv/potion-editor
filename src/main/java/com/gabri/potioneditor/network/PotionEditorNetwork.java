@@ -9,6 +9,7 @@ import com.gabri.potioneditor.potion.PotionVariantKey;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkDirection;
@@ -17,11 +18,15 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public final class PotionEditorNetwork {
     private static final String PROTOCOL = "1";
+    private static final Set<UUID> CLIENT_CAPABLE_PLAYERS = ConcurrentHashMap.newKeySet();
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
             .named(PotionEditor.id("main"))
             .networkProtocolVersion(() -> PROTOCOL)
@@ -52,18 +57,50 @@ public final class PotionEditorNetwork {
                 .decoder(ApplyOverridePacket::decode)
                 .consumerMainThread(ApplyOverridePacket::handle)
                 .add();
+
+        CHANNEL.messageBuilder(ClientHelloPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ClientHelloPacket::encode)
+                .decoder(ClientHelloPacket::decode)
+                .consumerMainThread(ClientHelloPacket::handle)
+                .add();
     }
 
     public static void syncToAll(PotionEditorState state) {
-        CHANNEL.send(PacketDistributor.ALL.noArg(), new SyncOverridesPacket(state.overridesCopy()));
+        if (ServerLifecycleHooks.getCurrentServer() == null) {
+            return;
+        }
+
+        for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+            syncToPlayer(player, state);
+        }
     }
 
     public static void syncToPlayer(ServerPlayer player, PotionEditorState state) {
+        if (!isClientCapable(player)) {
+            return;
+        }
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new SyncOverridesPacket(state.overridesCopy()));
     }
 
     public static void openCatalog(ServerPlayer player) {
+        if (!isClientCapable(player)) {
+            return;
+        }
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new OpenCatalogPacket());
+    }
+
+    public static void sendClientHello() {
+        CHANNEL.sendToServer(new ClientHelloPacket());
+    }
+
+    public static void forgetClient(ServerPlayer player) {
+        if (player != null) {
+            CLIENT_CAPABLE_PLAYERS.remove(player.getUUID());
+        }
+    }
+
+    private static boolean isClientCapable(ServerPlayer player) {
+        return player != null && CLIENT_CAPABLE_PLAYERS.contains(player.getUUID());
     }
 
     public static void sendApply(PotionVariantKey key, PotionVariantData data, boolean clear) {
@@ -154,6 +191,29 @@ public final class PotionEditorNetwork {
                 state.setDirty();
                 PotionEditorNetwork.syncToAll(state);
                 player.server.overworld().getDataStorage().save();
+            });
+            context.setPacketHandled(true);
+        }
+    }
+
+    private record ClientHelloPacket() {
+        private static void encode(ClientHelloPacket packet, FriendlyByteBuf buffer) {
+        }
+
+        private static ClientHelloPacket decode(FriendlyByteBuf buffer) {
+            return new ClientHelloPacket();
+        }
+
+        private static void handle(ClientHelloPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+            NetworkEvent.Context context = contextSupplier.get();
+            ServerPlayer player = context.getSender();
+            context.enqueueWork(() -> {
+                if (player == null) {
+                    return;
+                }
+
+                CLIENT_CAPABLE_PLAYERS.add(player.getUUID());
+                PotionEditorNetwork.syncToPlayer(player, PotionEditorState.get(player.server));
             });
             context.setPacketHandled(true);
         }

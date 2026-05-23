@@ -9,11 +9,14 @@ import com.gabri.potioneditor.potion.PotionEditorRuntime;
 import com.gabri.potioneditor.potion.PotionVariantData;
 import com.gabri.potioneditor.potion.PotionVariantKey;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 @Mod(PotionEditor.MODID)
@@ -23,6 +26,8 @@ public class PotionEditor {
 
     public PotionEditor() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PotionEditorConfig.SPEC);
+        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        modBus.addListener(this::onClientSetup);
         registerBabelResolvers();
         PotionEditorNetwork.register();
         MinecraftForge.EVENT_BUS.register(this);
@@ -35,13 +40,24 @@ public class PotionEditor {
     @SubscribeEvent
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
-            PotionEditorNetwork.syncToPlayer(player, PotionEditorState.get(player.server));
+            PotionEditorNetwork.forgetClient(player);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            PotionEditorNetwork.forgetClient(player);
         }
     }
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         PotionEditorCommands.register(event.getDispatcher());
+    }
+
+    private void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(com.gabri.potioneditor.client.PotionEditorClientHooks::registerClientEvents);
     }
 
     private static void registerBabelResolvers() {
