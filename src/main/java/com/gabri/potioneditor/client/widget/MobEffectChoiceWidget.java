@@ -21,7 +21,7 @@ public class MobEffectChoiceWidget extends BabelWidget {
         this.effect = effect;
         this.onSelect = onSelect == null ? () -> {} : onSelect;
         ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
-        this.label = Component.literal(id == null ? "unknown" : id.toString());
+        this.label = id == null ? Component.translatable("potioneditor.effect.unknown") : Component.literal(id.toString());
         style().fillWidth();
         style().height(24);
         style().padding(4, 6);

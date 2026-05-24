@@ -10,8 +10,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
@@ -118,9 +116,7 @@ public final class PotionEditorNetwork {
         private static void handle(OpenCatalogPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
             NetworkEvent.Context context = contextSupplier.get();
             context.enqueueWork(() -> {
-                if (FMLEnvironment.dist == Dist.CLIENT) {
-                    com.gabri.potioneditor.client.PotionEditorClientHooks.openCatalogScreen();
-                }
+                com.gabri.potioneditor.PotionEditorHooks.openCatalog();
             });
             context.setPacketHandled(true);
         }

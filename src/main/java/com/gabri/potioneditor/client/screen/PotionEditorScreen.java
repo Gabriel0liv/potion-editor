@@ -25,8 +25,6 @@ import com.gabri.potioneditor.potion.PotionEffectSpec;
 import com.gabri.potioneditor.potion.PotionVariantData;
 import com.gabri.potioneditor.potion.PotionVariantKey;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -72,7 +70,7 @@ public class PotionEditorScreen extends BabelScreen {
     private long lastCacheVersion = -1L;
 
     public PotionEditorScreen(ResourceLocation familyId) {
-        super(Component.literal("Potion Editor"));
+        super(Component.translatable("potioneditor.title"));
         this.familyId = familyId;
     }
 
@@ -88,13 +86,13 @@ public class PotionEditorScreen extends BabelScreen {
 
         BabelPanel root = BabelTemplates.screenShell();
 
-        titleLabel = new BabelLabel(Component.literal("Potion Editor: " + PotionCatalog.prettyName(family.familyId())));
+        titleLabel = new BabelLabel(Component.translatable("potioneditor.title").append(": " + PotionCatalog.prettyName(family.familyId())));
         titleLabel.style().textColor(0xFFFFFFFF);
 
-        BabelButton backButton = new BabelButton(Component.literal("Back"), () -> Minecraft.getInstance().setScreen(new PotionCatalogScreen()));
-        BabelButton saveButton = new BabelButton(Component.literal("Save"), this::saveCurrentVariant);
-        BabelButton resetButton = new BabelButton(Component.literal("Reset"), this::resetCurrentVariant);
-        statusLabel = new BabelLabel(Component.literal("Ready"));
+        BabelButton backButton = new BabelButton(Component.translatable("potioneditor.button.back"), () -> Minecraft.getInstance().setScreen(new PotionCatalogScreen()));
+        BabelButton saveButton = new BabelButton(Component.translatable("potioneditor.button.save"), this::saveCurrentVariant);
+        BabelButton resetButton = new BabelButton(Component.translatable("potioneditor.button.reset"), this::resetCurrentVariant);
+        statusLabel = new BabelLabel(Component.translatable("potioneditor.status.ready"));
         statusLabel.style().textColor(0xFF9BC2FF);
 
         BabelRow toolbar = BabelTemplates.toolbar(backButton, titleLabel, statusLabel, saveButton, resetButton);
@@ -103,7 +101,7 @@ public class PotionEditorScreen extends BabelScreen {
         variantListPane.fillWidth().fillHeight();
         variantListPane.showScrollbar(true);
         BabelPanel variantPanel = new BabelPanel().fillHeight().width(260).gap(8);
-        variantPanel.add(new BabelLabel(Component.literal("Variants")), variantListPane);
+        variantPanel.add(new BabelLabel(Component.translatable("potioneditor.editor.variants_label")), variantListPane);
 
         effectListPane = new BabelScrollPane();
         effectListPane.fillWidth().fillHeight();
@@ -135,11 +133,11 @@ public class PotionEditorScreen extends BabelScreen {
         BabelRow row = new BabelRow().fillWidth().gap(6);
         formButtons.clear();
         for (PotionForm form : PotionForm.values()) {
-            BabelButton button = new BabelButton(Component.literal(form.id()), () -> selectForm(form));
+            BabelButton button = new BabelButton(Component.translatable("potioneditor.form." + form.id()), () -> selectForm(form));
             formButtons.add(button);
             row.add(button);
         }
-        colorButton = new BabelButton(Component.literal("Color"), this::openColorModal)
+        colorButton = new BabelButton(Component.translatable("potioneditor.button.color"), this::openColorModal)
                 .colors(0xFF3C6DF0, 0xFF5E89F5, 0xFFFFFFFF);
         row.add(new BabelLabel(Component.empty()).fillWidth(), colorButton);
         syncFormButtons();
@@ -148,9 +146,9 @@ public class PotionEditorScreen extends BabelScreen {
     }
 
     private BabelRow buildEffectHeaderRow() {
-        addEffectButton = new BabelButton(Component.literal("Add effect"), this::openEffectPickerModal)
+        addEffectButton = new BabelButton(Component.translatable("potioneditor.button.add_effect"), this::openEffectPickerModal)
                 .colors(0xFF2F3642, 0xFF3A4253, BabelTheme.TEXT);
-        BabelLabel hint = new BabelLabel(Component.literal("Search and add registered effects"));
+        BabelLabel hint = new BabelLabel(Component.translatable("potioneditor.editor.hint"));
         hint.style().textColor(BabelTheme.TEXT_MUTED);
         hint.wrap(true);
         BabelRow row = new BabelRow().fillWidth().gap(8).align(com.gabri.babel.core.client.ui.BabelAlign.CENTER);
@@ -250,7 +248,7 @@ public class PotionEditorScreen extends BabelScreen {
         PotionEditorNetwork.sendApply(key, workingData.copy(), false);
         lastCacheVersion = PotionEditorClientCache.version();
         dirty = false;
-        statusLabel.text(Component.literal("Saved " + key.asStringKey()));
+        statusLabel.text(Component.translatable("potioneditor.status.saved", key.asStringKey()));
     }
 
     private void resetCurrentVariant() {
@@ -261,7 +259,7 @@ public class PotionEditorScreen extends BabelScreen {
         rebuildEffectRows();
         lastCacheVersion = PotionEditorClientCache.version();
         dirty = false;
-        statusLabel.text(Component.literal("Reset " + key.asStringKey()));
+        statusLabel.text(Component.translatable("potioneditor.status.reset", key.asStringKey()));
     }
 
     private void syncSelectedVariantRows() {
@@ -280,7 +278,7 @@ public class PotionEditorScreen extends BabelScreen {
             PotionForm form = PotionForm.values()[i];
             BabelButton button = formButtons.get(i);
             boolean selected = form == selectedForm;
-            button.text(Component.literal(form.id() + (selected ? " *" : "")));
+            button.text(Component.translatable("potioneditor.form." + form.id()).append(selected ? " *" : ""));
             button.colors(selected ? 0xFF3B6CF6 : 0xFF4A4A4A, selected ? 0xFF5691FF : 0xFF666666, 0xFFFFFFFF);
         }
     }
@@ -291,8 +289,8 @@ public class PotionEditorScreen extends BabelScreen {
         }
 
         int color = resolveCurrentColor();
-        String label = workingData.customColor() == null ? "Auto" : "#" + formatHex(color);
-        colorButton.text(Component.literal("Color · " + label));
+        Component labelComp = workingData.customColor() == null ? Component.translatable("potioneditor.color.auto") : Component.literal("#" + formatHex(color));
+        colorButton.text(Component.translatable("potioneditor.button.color").append(" · ").append(labelComp));
         colorButton.colors(color, lightenColor(color), 0xFFFFFFFF);
     }
 
@@ -304,14 +302,14 @@ public class PotionEditorScreen extends BabelScreen {
         int initialColor = resolveCurrentColor();
         BabelPanel modal = new BabelPanel().width(520).gap(8).padding(10).background(0xFF1A1F28);
         BabelRow titleRow = new BabelRow().fillWidth().gap(8).align(BabelAlign.CENTER);
-        BabelLabel title = new BabelLabel(Component.literal("Pick color"));
+        BabelLabel title = new BabelLabel(Component.translatable("potioneditor.color.pick"));
         title.style().textColor(BabelTheme.ACCENT);
-        BabelButton closeButton = new BabelButton(Component.literal("Close"), this::closeModal)
+        BabelButton closeButton = new BabelButton(Component.translatable("potioneditor.button.close"), this::closeModal)
                 .colors(0xFF4A4A4A, 0xFF666666, 0xFFFFFFFF);
         titleRow.add(title, new BabelLabel(Component.empty()).fillWidth(), closeButton);
 
         colorPreviewWidget = new PotionColorPreviewWidget().width(94).height(94);
-        colorPreviewWidget.setPreview(createPreviewStack(initialColor), initialColor, Component.literal(selectedForm.id()));
+        colorPreviewWidget.setPreview(createPreviewStack(initialColor), initialColor, Component.translatable("potioneditor.form." + selectedForm.id()));
 
         colorHexField = new BabelTextField(formatHex(initialColor), value -> {
             Integer parsed = parseColor(value);
@@ -319,7 +317,7 @@ public class PotionEditorScreen extends BabelScreen {
                 applyColor(parsed, true);
             }
         })
-                .placeholder(Component.literal("hex RRGGBB"))
+                .placeholder(Component.translatable("potioneditor.color.hex_placeholder"))
                 .maxLength(8)
                 .fillWidth();
 
@@ -340,9 +338,9 @@ public class PotionEditorScreen extends BabelScreen {
 
         BabelColumn controls = new BabelColumn().fillWidth().gap(6);
         BabelRow headRow = new BabelRow().fillWidth().gap(8).align(BabelAlign.CENTER);
-        BabelLabel hexLabel = new BabelLabel(Component.literal("Hex"));
+        BabelLabel hexLabel = new BabelLabel(Component.translatable("potioneditor.color.hex"));
         hexLabel.style().textColor(BabelTheme.TEXT_MUTED);
-        colorStateLabel = new BabelLabel(Component.literal(workingData.customColor() == null ? "Auto" : "#" + formatHex(initialColor)));
+        colorStateLabel = new BabelLabel(workingData.customColor() == null ? Component.translatable("potioneditor.color.auto") : Component.literal("#" + formatHex(initialColor)));
         colorStateLabel.style().textColor(BabelTheme.TEXT_MUTED);
         headRow.add(hexLabel, colorHexField, colorStateLabel);
         controls.add(headRow, redRow, greenRow, blueRow);
@@ -358,14 +356,14 @@ public class PotionEditorScreen extends BabelScreen {
     private void openEffectPickerModal() {
         BabelPanel modal = new BabelPanel().width(420).height(360).gap(8).padding(10).background(0xFF1A1F28);
         BabelRow titleRow = new BabelRow().fillWidth().gap(8).align(com.gabri.babel.core.client.ui.BabelAlign.CENTER);
-        BabelLabel title = new BabelLabel(Component.literal("Add effect"));
+        BabelLabel title = new BabelLabel(Component.translatable("potioneditor.button.add_effect"));
         title.style().textColor(BabelTheme.ACCENT);
-        BabelButton closeButton = new BabelButton(Component.literal("Close"), this::closeModal)
+        BabelButton closeButton = new BabelButton(Component.translatable("potioneditor.button.close"), this::closeModal)
                 .colors(0xFF4A4A4A, 0xFF666666, 0xFFFFFFFF);
         titleRow.add(title, new BabelLabel(Component.empty()).fillWidth(), closeButton);
 
         effectFilterField = new BabelTextField("", value -> rebuildEffectPickerList(value))
-                .placeholder(Component.literal("Search by id or namespace"))
+                .placeholder(Component.translatable("potioneditor.effect.search_placeholder"))
                 .maxLength(64)
                 .fillWidth();
 
@@ -403,7 +401,7 @@ public class PotionEditorScreen extends BabelScreen {
                 .toList();
 
         if (effects.isEmpty()) {
-            BabelLabel empty = new BabelLabel(Component.literal("No effects match this query."));
+            BabelLabel empty = new BabelLabel(Component.translatable("potioneditor.effect.no_matches"));
             empty.style().textColor(BabelTheme.TEXT_MUTED);
             effectPickerListPane.add(empty);
             return;
@@ -432,12 +430,6 @@ public class PotionEditorScreen extends BabelScreen {
         syncColorSection();
     }
 
-    private void applyColorInput(String value) {
-        Integer parsed = parseColor(value);
-        if (parsed != null) {
-            applyColor(parsed, true);
-        }
-    }
 
     private void applyColor(int color, boolean commit) {
         if (workingData == null) {
@@ -463,11 +455,11 @@ public class PotionEditorScreen extends BabelScreen {
         int resolved = resolveCurrentColor();
         boolean custom = workingData.customColor() != null;
         if (colorStateLabel != null) {
-            colorStateLabel.text(Component.literal(custom ? "#" + formatHex(resolved) : "Auto"));
+            colorStateLabel.text(custom ? Component.literal("#" + formatHex(resolved)) : Component.translatable("potioneditor.color.auto"));
         }
 
         if (colorPreviewWidget != null) {
-            colorPreviewWidget.setPreview(createPreviewStack(resolved), resolved, Component.literal(selectedForm.id()));
+            colorPreviewWidget.setPreview(createPreviewStack(resolved), resolved, Component.translatable("potioneditor.form." + selectedForm.id()));
         }
         if (colorHexField != null && !colorHexField.focused()) {
             colorHexField.setValueSilently(formatHex(resolved));
@@ -551,7 +543,7 @@ public class PotionEditorScreen extends BabelScreen {
 
     private void setDirty() {
         dirty = true;
-        statusLabel.text(Component.literal("Unsaved changes"));
+        statusLabel.text(Component.translatable("potioneditor.status.unsaved"));
     }
 
     private PotionVariantKey currentKey() {

@@ -1,7 +1,6 @@
 package com.gabri.potioneditor;
 
 import com.gabri.potioneditor.network.PotionEditorNetwork;
-import com.gabri.potioneditor.potion.PotionEditorState;
 import com.gabri.babel.core.api.BabelItems;
 import com.gabri.babel.core.item.BabelItemStackResolver;
 import com.gabri.babel.core.item.BabelItemStackView;
@@ -9,14 +8,9 @@ import com.gabri.potioneditor.potion.PotionEditorRuntime;
 import com.gabri.potioneditor.potion.PotionVariantData;
 import com.gabri.potioneditor.potion.PotionVariantKey;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 @Mod(PotionEditor.MODID)
@@ -25,9 +19,6 @@ public class PotionEditor {
     private static final String COLOR_RESOLVER_ID = "potioneditor:variant_color";
 
     public PotionEditor() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PotionEditorConfig.SPEC);
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        modBus.addListener(this::onClientSetup);
         registerBabelResolvers();
         PotionEditorNetwork.register();
         MinecraftForge.EVENT_BUS.register(this);
@@ -56,9 +47,6 @@ public class PotionEditor {
         PotionEditorCommands.register(event.getDispatcher());
     }
 
-    private void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(com.gabri.potioneditor.client.PotionEditorClientHooks::registerClientEvents);
-    }
 
     private static void registerBabelResolvers() {
         BabelItems.colorResolvers().register(new BabelItemStackResolver<>() {

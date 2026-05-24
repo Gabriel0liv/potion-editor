@@ -3,7 +3,6 @@ package com.gabri.potioneditor.client.widget;
 import com.gabri.babel.core.client.ui.BabelSize;
 import com.gabri.babel.core.client.ui.BabelTheme;
 import com.gabri.babel.core.client.ui.BabelWidget;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -12,12 +11,12 @@ import net.minecraft.world.item.ItemStack;
 public class PotionColorPreviewWidget extends BabelWidget {
     private ItemStack stack = ItemStack.EMPTY;
     private int color = 0x3F76E4;
-    private Component caption = Component.literal("Preview");
+    private Component caption = Component.translatable("potioneditor.preview");
 
     public PotionColorPreviewWidget setPreview(ItemStack stack, int color, Component caption) {
         this.stack = stack == null ? ItemStack.EMPTY : stack.copy();
         this.color = color & 0xFFFFFF;
-        this.caption = caption == null ? Component.literal("Preview") : caption;
+        this.caption = caption == null ? Component.translatable("potioneditor.preview") : caption;
         return this;
     }
 

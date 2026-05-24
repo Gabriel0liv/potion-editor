@@ -26,7 +26,7 @@ public enum PotionForm {
     }
 
     public Component label() {
-        return Component.literal(id);
+        return Component.translatable("potioneditor.form." + id);
     }
 
     public static PotionForm fromItemStack(ItemStack stack) {

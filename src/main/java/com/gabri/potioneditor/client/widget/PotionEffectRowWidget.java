@@ -48,7 +48,7 @@ public class PotionEffectRowWidget extends BabelPanel {
             spec.effectId(value.trim());
             this.onDirty.run();
         })
-                .placeholder(Component.literal("effect id"))
+                .placeholder(Component.translatable("potioneditor.widget.effect_id_placeholder"))
                 .maxLength(64)
                 .fillWidth();
 
@@ -61,19 +61,19 @@ public class PotionEffectRowWidget extends BabelPanel {
         BabelRow headerRow = new BabelRow().fillWidth().gap(8).align(BabelAlign.CENTER);
         headerRow.add(effectIconWidget, effectField, removeButton);
 
-        BabelLabel durationLabel = new BabelLabel(Component.literal("Duration (s)"));
+        BabelLabel durationLabel = new BabelLabel(Component.translatable("potioneditor.widget.duration"));
         durationLabel.style().textColor(BabelTheme.TEXT_MUTED);
         durationField = createNumberField(() -> spec.durationSeconds(), value -> {
             spec.durationSeconds(value);
             this.onDirty.run();
-        }, "seconds");
+        }, "potioneditor.widget.seconds");
 
-        BabelLabel amplifierLabel = new BabelLabel(Component.literal("Amplifier"));
+        BabelLabel amplifierLabel = new BabelLabel(Component.translatable("potioneditor.widget.amplifier"));
         amplifierLabel.style().textColor(BabelTheme.TEXT_MUTED);
         amplifierField = createNumberField(() -> spec.amplifier(), value -> {
             spec.amplifier(value);
             this.onDirty.run();
-        }, "level");
+        }, "potioneditor.widget.level");
 
         BabelColumn durationColumn = new BabelColumn().fillWidth().gap(4);
         durationColumn.add(durationLabel, durationField);
@@ -84,15 +84,15 @@ public class PotionEffectRowWidget extends BabelPanel {
         BabelRow statsRow = new BabelRow().fillWidth().gap(8);
         statsRow.add(durationColumn, amplifierColumn);
 
-        ambientButton = new BabelButton(Component.literal("Ambient"), () -> {
+        ambientButton = new BabelButton(Component.translatable("potioneditor.effect.ambient"), () -> {
             spec.ambient(!spec.ambient());
             this.onDirty.run();
         });
-        visibleButton = new BabelButton(Component.literal("Visible"), () -> {
+        visibleButton = new BabelButton(Component.translatable("potioneditor.effect.visible"), () -> {
             spec.visible(!spec.visible());
             this.onDirty.run();
         });
-        iconButton = new BabelButton(Component.literal("Icon"), () -> {
+        iconButton = new BabelButton(Component.translatable("potioneditor.effect.icon"), () -> {
             spec.showIcon(!spec.showIcon());
             this.onDirty.run();
         });
@@ -112,7 +112,7 @@ public class PotionEffectRowWidget extends BabelPanel {
         super.render(graphics, font, mouseX, mouseY, partialTick);
     }
 
-    private BabelTextField createNumberField(java.util.function.IntSupplier getter, java.util.function.IntConsumer setter, String placeholder) {
+    private BabelTextField createNumberField(java.util.function.IntSupplier getter, java.util.function.IntConsumer setter, String placeholderKey) {
         return new BabelTextField(String.valueOf(getter.getAsInt()), value -> {
             if (value == null || value.isBlank()) {
                 setter.accept(0);
@@ -124,7 +124,7 @@ public class PotionEffectRowWidget extends BabelPanel {
             }
         })
                 .inputFilter(text -> text == null || text.isBlank() || text.chars().allMatch(Character::isDigit))
-                .placeholder(Component.literal(placeholder))
+                .placeholder(Component.translatable(placeholderKey))
                 .maxLength(8)
                 .width(120);
     }
@@ -137,9 +137,9 @@ public class PotionEffectRowWidget extends BabelPanel {
 
     private void syncLabels() {
         effectIconWidget.effectId(spec.effectId());
-        syncToggle(ambientButton, "Ambient", spec.ambient());
-        syncToggle(visibleButton, "Visible", spec.visible());
-        syncToggle(iconButton, "Icon", spec.showIcon());
+        syncToggle(ambientButton, "potioneditor.effect.ambient", spec.ambient());
+        syncToggle(visibleButton, "potioneditor.effect.visible", spec.visible());
+        syncToggle(iconButton, "potioneditor.effect.icon", spec.showIcon());
     }
 
     private static void syncTextField(BabelTextField field, String value) {
@@ -152,8 +152,8 @@ public class PotionEffectRowWidget extends BabelPanel {
         }
     }
 
-    private static void syncToggle(BabelButton button, String label, boolean state) {
-        button.text(Component.literal(label + ": " + (state ? "On" : "Off")));
+    private static void syncToggle(BabelButton button, String translationKey, boolean state) {
+        button.text(Component.translatable(translationKey).append(": ").append(Component.translatable(state ? "potioneditor.toggle.on" : "potioneditor.toggle.off")));
         button.colors(state ? 0xFF256B3D : 0xFF4A4A4A, state ? 0xFF318A50 : 0xFF666666, 0xFFFFFFFF);
     }
 

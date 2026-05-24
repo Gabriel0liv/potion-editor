@@ -1,7 +1,6 @@
 package com.gabri.potioneditor.client.screen;
 
 import com.gabri.babel.core.client.ui.BabelButton;
-import com.gabri.babel.core.client.ui.BabelColumn;
 import com.gabri.babel.core.client.ui.BabelLabel;
 import com.gabri.babel.core.client.ui.BabelPanel;
 import com.gabri.babel.core.client.ui.BabelRow;
@@ -13,7 +12,6 @@ import com.gabri.potioneditor.client.widget.PotionListRowWidget;
 import com.gabri.potioneditor.potion.PotionCatalog;
 import com.gabri.potioneditor.potion.PotionCatalog.PotionFamily;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -30,7 +28,7 @@ public class PotionCatalogScreen extends BabelScreen {
     private PotionFamily selectedFamily;
 
     public PotionCatalogScreen() {
-        super(Component.literal("Potion Catalog"));
+        super(Component.translatable("potioneditor.catalog.title"));
         filteredFamilies.addAll(allFamilies);
         if (!filteredFamilies.isEmpty()) {
             selectedFamily = filteredFamilies.get(0);
@@ -41,15 +39,15 @@ public class PotionCatalogScreen extends BabelScreen {
     protected BabelPanel buildRoot(int width, int height) {
         BabelPanel root = BabelTemplates.screenShell();
 
-        BabelLabel title = new BabelLabel(Component.literal("Potion Catalog"));
+        BabelLabel title = new BabelLabel(Component.translatable("potioneditor.catalog.title"));
         title.style().textColor(0xFFFFFFFF);
 
         searchField = new BabelTextField("", value -> {
             filter(value);
             rebuildList();
-        }).placeholder(Component.literal("Search potions")).maxLength(64).fillWidth();
+        }).placeholder(Component.translatable("potioneditor.catalog.search")).maxLength(64).fillWidth();
 
-        BabelButton refreshButton = new BabelButton(Component.literal("Refresh"), () -> {
+        BabelButton refreshButton = new BabelButton(Component.translatable("potioneditor.catalog.refresh"), () -> {
             filter(searchField.value());
             rebuildList();
         });
@@ -96,7 +94,7 @@ public class PotionCatalogScreen extends BabelScreen {
             PotionFamily current = family;
             PotionListRowWidget row = new PotionListRowWidget(
                     Component.literal(PotionCatalog.prettyName(family.familyId())),
-                    Component.literal(family.variants().size() + " variants"),
+                    Component.translatable("potioneditor.catalog.variants", family.variants().size()),
                     icon,
                     () -> selectedFamily = current,
                     () -> Minecraft.getInstance().setScreen(new PotionEditorScreen(current.familyId()))
